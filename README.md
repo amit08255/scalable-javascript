@@ -60,3 +60,75 @@ In this modular architecture, we capitalize on the same concept and create space
 * Module provides its exposed functionality to the outside world through a single common interface. Create multiple instances of the sandbox module and, to be more precise, one instance per component.
 
 * This would mean that, if one of our components does something undesirable which could cause issues in its sandbox instance, such a mess would be contained within that sandbox module instance. The adverse effects will only impact the functionality of that component but no other sandbox instances, or any other components for that matter.
+
+## Sandbox constructor
+
+* You create objects using this constructor, and you also pass a callback function, which becomes the isolated sandboxed environment for your code.
+
+  ```js
+  new Sandbox(function (box) {
+   // your code here...
+  });
+  ```
+
+  The object box will have all the library functionality you need to make your code work.
+
+* The Sandbox() constructor can accept an additional configuration argument (or arguments) specifying names of modules required for this object instance. We want the code to be modular, so most of the functionality Sandbox() provides will be contained in modules.
+
+  ```js
+    Sandbox(['ajax', 'event'], function (box) {
+     // console.log(box);
+   });
+  ```
+
+  Another example of that is:
+  
+  ```js
+  Sandbox('ajax', 'dom', function (box) {
+   // console.log(box);
+  });
+  ```
+
+* Using a wildcard `*` argument to mean use all available modules. When no modules are passed, the sandbox will assume `*`. So two ways to use all available modules will be like:
+
+  ```js
+  Sandbox('*', function (box) {
+   // console.log(box);
+  });
+  ```
+  
+  ```js
+  Sandbox(function (box) {
+   // console.log(box);
+  });
+  ```
+
+## Adding sandbox module
+
+* The Sandbox() constructor function is also an object, so you can add a static property called `modules` to it.
+
+* This property will be another object containing key-value pairs where the keys are the names of the modules and the values are the functions that implement each module:
+
+```js
+Sandbox.modules = {};
+
+Sandbox.modules.dom = function (box) {
+ box.getElement = function () {};
+ box.getStyle = function () {};
+ box.foo = "bar";
+};
+
+Sandbox.modules.event = function (box) {
+ // access to the Sandbox prototype if needed:
+ // box.constructor.prototype.m = "mmm";
+ box.attachEvent = function () {};
+ box.dettachEvent = function () {};
+};
+
+Sandbox.modules.ajax = function (box) {
+ box.makeRequest = function () {};
+ box.getResponse = function () {};
+};
+```
+
+* The functions that implement each module accept the current instance box as a parameter and may add additional properties and methods to that instance.
