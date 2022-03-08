@@ -109,26 +109,26 @@ In this modular architecture, we capitalize on the same concept and create space
 
 * This property will be another object containing key-value pairs where the keys are the names of the modules and the values are the functions that implement each module:
 
-```js
-Sandbox.modules = {};
+  ```js
+  Sandbox.modules = {};
 
-Sandbox.modules.dom = function (box) {
- box.getElement = function () {};
- box.getStyle = function () {};
- box.foo = "bar";
-};
+  Sandbox.modules.dom = function (box) {
+   box.getElement = function () {};
+   box.getStyle = function () {};
+   box.foo = "bar";
+  };
 
-Sandbox.modules.event = function (box) {
- // access to the Sandbox prototype if needed:
- // box.constructor.prototype.m = "mmm";
- box.attachEvent = function () {};
- box.dettachEvent = function () {};
-};
+  Sandbox.modules.event = function (box) {
+   // access to the Sandbox prototype if needed:
+   // box.constructor.prototype.m = "mmm";
+   box.attachEvent = function () {};
+   box.dettachEvent = function () {};
+  };
 
-Sandbox.modules.ajax = function (box) {
- box.makeRequest = function () {};
- box.getResponse = function () {};
-};
-```
+  Sandbox.modules.ajax = function (box) {
+   box.makeRequest = function () {};
+   box.getResponse = function () {};
+  };
+  ```
 
 * The functions that implement each module accept the current instance box as a parameter and may add additional properties and methods to that instance.
