@@ -132,3 +132,60 @@ In this modular architecture, we capitalize on the same concept and create space
   ```
 
 * The functions that implement each module accept the current instance box as a parameter and may add additional properties and methods to that instance.
+
+## Implementing sandbox constructor
+
+* There should check whether this is an instance of Sandbox and if not (meaning Sandbox() was called without new), we call the function again as a constructor.
+
+* You can add properties to this inside the constructor. You can also add properties to the prototype of the constructor.
+
+* The required modules can be passed as an array of module names, or as individual arguments, or with the * wildcard (or omitted), which means we should load all available modules.
+
+* When we know the required modules, we initialize them, which means we call the function that implements each module.
+
+* The last argument to the constructor is the callback. The callback will be invoked at the end using the newly created instance. This callback is actually the user’s sandbox, and it gets a box object populated with all the requested functionality.
+
+
+```js
+function Sandbox() {
+ // turning arguments into an array
+ var args = Array.prototype.slice.call(arguments),
+ // the last argument is the callback
+ callback = args.pop(),
+ // modules can be passed as an array or as individual parameters
+ modules = (args[0] && typeof args[0] === "string") ? args : args[0],
+ i;
+ // make sure the function is called
+ // as a constructor
+ if (!(this instanceof Sandbox)) {
+ return new Sandbox(modules, callback);
+ }
+ // add properties to `this` as needed:
+ this.a = 1;
+ this.b = 2;
+ // now add modules to the core `this` object
+ // no modules or "*" both mean "use all modules"
+ if (!modules || modules === '*') {
+ modules = [];
+ for (i in Sandbox.modules) {
+ if (Sandbox.modules.hasOwnProperty(i)) {
+ modules.push(i);
+ }
+ }
+ }
+ // initialize the required modules
+ for (i = 0; i < modules.length; i += 1) {
+ Sandbox.modules[modules[i]](this);
+ }
+ // call the callback
+ callback(this);
+}
+// any prototype properties as needed
+Sandbox.prototype = {
+ name: "My Application",
+ version: "1.0",
+ getName: function () {
+ return this.name;
+ }
+};
+```
