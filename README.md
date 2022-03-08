@@ -189,3 +189,129 @@ Sandbox.prototype = {
  }
 };
 ```
+
+# Implementing sandbox static members
+
+* Static properties and methods are those that don’t change from one instance to another.
+
+* Public static member, which can be used without having to create an instance of the class.
+
+* Private static members are not visible to the consumer of the class but still shared among all the instances of the class.
+
+### Public static members
+
+```js
+// constructor
+var Gadget = function () {};
+
+// a static method
+Gadget.isShiny = function () {
+ return "you bet";
+};
+
+// a normal method added to the prototype
+Gadget.prototype.setPrice = function (price) {
+ this.price = price;
+};
+
+// calling a static method
+Gadget.isShiny(); // "you bet"
+
+// creating an instance and calling a method
+var iphone = new Gadget();
+iphone.setPrice(500);
+```
+
+* Sometimes it could be convenient to have the static methods working with an instance too. This is easy to achieve by simply adding a new method to the prototype, which serves as a façade pointing to the original static method:
+
+  ```js
+  Gadget.prototype.isShiny = Gadget.isShiny;
+  iphone.isShiny(); // "you bet"
+  ```
+
+* In such cases you need to be careful if you use this inside the static method. When you do Gadget.isShiny() then this inside isShiny() will refer to the Gadget constructor function. If you do iphone.isShiny() then this will point to iphone.
+
+* One last example shows how you can have the same method being called statically and nonstatically and behave slightly different, depending on the invocation pattern. Here instanceof helps determine how the method was called:
+
+  ```js
+  // constructor
+  var Gadget = function (price) {
+    this.price = price;
+  };
+
+  // a static method
+  Gadget.isShiny = function () {
+   // this always works
+   var msg = "you bet";
+   if (this instanceof Gadget) {
+     // this only works if called non-statically
+     msg += ", it costs $" + this.price + '!';
+   }
+   return msg;
+  };
+
+  // a normal method added to the prototype
+  Gadget.prototype.isShiny = function () {
+   return Gadget.isShiny.call(this);
+  };
+  
+  Gadget.isShiny(); // "you bet"
+  
+  var a = new Gadget('499.99');
+  a.isShiny(); // "you bet, it costs $499.99!"
+  ```
+
+### Private static members
+
+* Shared by all the objects created with the same constructor function.
+
+* Not accessible outside the constructor.
+
+```js
+var Gadget = (function () {
+ // static variable/property
+ var counter = 0;
+ // returning the new implementation
+ // of the constructor
+ return function () {
+ console.log(counter += 1);
+ };
+}()); // execute immediately
+```
+
+* The new Gadget constructor simply increments and logs the private counter.
+
+```js
+var g1 = new Gadget(); // logs 1
+var g2 = new Gadget(); // logs 2
+var g3 = new Gadget(); // logs 3
+```
+
+```js
+// constructor
+var Gadget = (function () {
+ // static variable/property
+ var counter = 0,
+ NewGadget;
+ // this will become the
+ // new constructor implementation
+ NewGadget = function () {
+ counter += 1;
+ };
+ // a privileged method
+ NewGadget.prototype.getLastId = function () {
+ return counter;
+ };
+ // overwrite the constructor
+ return NewGadget;
+}()); // execute immediately
+```
+
+```js
+var iphone = new Gadget();
+iphone.getLastId(); // 1
+var ipod = new Gadget();
+ipod.getLastId(); // 2
+var ipad = new Gadget();
+ipad.getLastId(); // 3
+```
